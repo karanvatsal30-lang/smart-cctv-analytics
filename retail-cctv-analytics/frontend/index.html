@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart CCTV — Universal Store Analytics</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Supabase JS client (CDN — anon/publishable key only) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+  <!-- ============================================================
+       AUTH GATE — Shown before dashboard; hidden after login
+  ============================================================ -->
+  <div id="auth-gate" class="auth-gate">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 10l5-5m0 0l-5-5m5 5H9a7 7 0 00-7 7v7" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      </div>
+      <h2 class="auth-title">Smart CCTV Analytics</h2>
+      <p class="auth-subtitle">Universal · Software-Only · Privacy-Preserving</p>
+
+      <!-- Auth Mode Tabs -->
+      <div class="auth-tabs">
+        <button type="button" id="tab-btn-login" class="auth-tab active">Sign In</button>
+        <button type="button" id="tab-btn-signup" class="auth-tab">Create Account</button>
+      </div>
+
+      <!-- PANEL 1: SIGN IN -->
+      <div id="auth-panel-login">
+        <div id="auth-error-login" class="auth-error hidden"></div>
+        <div class="auth-field">
+          <label>Email Address</label>
+          <input type="email" id="login-email" placeholder="manager@retailstore.com" autocomplete="email">
+        </div>
+        <div class="auth-field">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button id="btn-login" class="btn btn-primary btn-full">Sign In to Dashboard</button>
+        <div class="auth-links">
+          <button class="btn-text-link" id="link-to-signup-from-login">First time? Create account</button>
+          <button class="btn-text-link" id="link-to-quick-id">Quick Station Mode</button>
+          <button class="btn-text-link" id="link-to-reset">Forgot password?</button>
+        </div>
+      </div>
+
+      <!-- PANEL 2: CREATE ACCOUNT FOR FIRST-TIME USERS -->
+      <div id="auth-panel-signup" class="hidden">
+        <div id="auth-error-signup" class="auth-error hidden"></div>
+        <div id="auth-success-signup" class="auth-success hidden"></div>
+        <div class="auth-field">
+          <label>Your Name / Store Name</label>
+          <input type="text" id="signup-name" placeholder="Store Manager / Main Branch" autocomplete="name">
+        </div>
+        <div class="auth-field">
+          <label>Email Address</label>
+          <input type="email" id="signup-email" placeholder="manager@retailstore.com" autocomplete="email">
+        </div>
+        <div class="auth-field">
+          <label>Password (min 6 characters)</label>
+          <input type="password" id="signup-password" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <div class="auth-field">
+          <label>CCTV Camera Name</label>
+          <input type="text" id="signup-cctv-name" value="Store CCTV Feed" placeholder="Front Checkout Camera">
+        </div>
+        <button id="btn-signup" class="btn btn-primary btn-full">Create Account &amp; Save CCTV Details</button>
+        <div class="auth-links">
+          <button class="btn-text-link" id="link-to-login-from-signup">Already have an account? Sign In</button>
+        </div>
+      </div>
+
+      <!-- PANEL 3: QUICK STATION MODE -->
+      <div id="auth-panel-quick" class="hidden">
+        <p class="auth-desc">Quick station identification for dedicated store terminals without email.</p>
+        <div class="auth-field">
+          <label>Terminal / Station Name</label>
+          <input type="text" id="quick-user-name" value="Front Checkout Station" placeholder="Front Desk Station">
+        </div>
+        <button id="btn-quick-login" class="btn btn-secondary btn-full">Enter as Station Operator</button>
+        <div class="auth-links">
+          <button class="btn-text-link" id="link-to-login-from-quick">&larr; Back to Email Sign In</button>
+        </div>
+      </div>
+
+      <!-- PANEL 4: PASSWORD RESET -->
+      <div id="auth-panel-reset" class="hidden">
+        <div id="auth-error-reset" class="auth-error hidden"></div>
+        <div id="auth-success-reset" class="auth-success hidden"></div>
+        <p class="auth-desc">Enter your email to receive a password reset link.</p>
+        <div class="auth-field">
+          <label>Account Email</label>
+          <input type="email" id="reset-email" placeholder="manager@retailstore.com" autocomplete="email">
+        </div>
+        <button id="btn-reset" class="btn btn-primary btn-full">Send Reset Link</button>
+        <div class="auth-links">
+          <button class="btn-text-link" id="link-to-login-from-reset">&larr; Back to Sign In</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       DASHBOARD — Hidden until authenticated
+  ============================================================ -->
+  <div id="app-dashboard" class="hidden">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-mark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 10l5-5m0 0l-5-5m5 5H9a7 7 0 00-7 7v7" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      </div>
+      <div>
+        <h1>SMART CCTV <span class="badge-tag">Store Analytics</span></h1>
+        <p class="header-subtitle">Universal &bull; Software-Only &bull; Conservative &bull; Explainable</p>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div id="video-source-pill" class="status-pill status-high">
+        <span class="pulse-dot"></span>
+        <span id="video-source-text">VIDEO SOURCE: Connected</span>
+      </div>
+      <button id="btn-open-source" class="btn btn-secondary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+        Video Source
+      </button>
+      <button id="btn-open-regions" class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>
+        </svg>
+        Setup Regions
+      </button>
+      <button id="btn-open-audit" class="btn btn-outline">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4M12 8h.01" />
+        </svg>
+        Audit Trail
+      </button>
+      <!-- User pill + logout (shown when logged in) -->
+      <div id="user-pill" class="user-pill hidden">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span id="user-display-name">Store Manager</span>
+        <button id="btn-logout" class="btn-danger-outline" style="margin-left:10px;">Log Out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ERROR / WARNING BANNER -->
+  <div id="connection-error-banner" class="connection-banner hidden">
+    <div class="banner-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </div>
+    <div class="banner-text">
+      <strong id="banner-title">Video Stream Alert</strong>
+      <p id="banner-msg">Connecting to video stream...</p>
+    </div>
+    <button id="banner-dismiss" class="btn-text">&times;</button>
+  </div>
+
+  <!-- MAIN TWO-COLUMN LAYOUT -->
+  <main class="dashboard-grid">
+    <!-- LEFT: LIVE CAMERA VIEW -->
+    <section class="video-card">
+      <div class="video-card-header">
+        <div class="stream-info">
+          <span class="live-tag">LIVE CAMERA</span>
+          <span id="stream-name-text" class="stream-name">Store CCTV Feed</span>
+          <span id="stream-fps-badge" class="fps-badge">20.0 FPS</span>
+        </div>
+        <div class="stream-controls-inline">
+          <button id="btn-toggle-shelf-sim" class="btn btn-sm btn-outline" title="Simulate shelf visual change in benchmark feed">
+            Simulate Shelf Change
+          </button>
+        </div>
+      </div>
+
+      <!-- VIDEO CANVAS WRAPPER -->
+      <div class="video-canvas-container" id="video-canvas-container">
+        <img id="cctv-stream-img" src="/api/video_feed" alt="Live Retail CCTV Feed">
+        <!-- Interactive Canvas for drawing regions -->
+        <canvas id="region-drawing-canvas" class="drawing-canvas hidden"></canvas>
+      </div>
+
+      <!-- VIDEO TOOLBAR -->
+      <div class="video-toolbar">
+        <div class="toggle-group">
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-boxes" checked>
+            <span class="slider"></span>
+            <span class="toggle-label">Bounding Boxes</span>
+          </label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-regions" checked>
+            <span class="slider"></span>
+            <span class="toggle-label">User Regions</span>
+          </label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-privacy">
+            <span class="slider"></span>
+            <span class="toggle-label">Privacy Blur</span>
+          </label>
+        </div>
+
+        <div id="drawing-toolbar" class="drawing-controls hidden">
+          <span class="drawing-instruction">Click 4 corners on the video to define:</span>
+          <button id="btn-draw-checkout" class="btn btn-sm btn-primary">Draw Checkout</button>
+          <button id="btn-draw-shelf" class="btn btn-sm btn-secondary">Draw Shelf</button>
+          <button id="btn-cancel-drawing" class="btn btn-sm btn-outline">Done Drawing</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: 4 FINAL APPROVED FEATURE CARDS -->
+    <aside class="analytics-sidebar">
+      <!-- FEATURE 1: CAMERA-WIDE PEOPLE COUNTING -->
+      <div class="feature-card">
+        <div class="card-header">
+          <span class="card-title">CAMERA-WIDE PEOPLE COUNT</span>
+          <span id="f1-reliability-badge" class="badge-pill badge-success">Reliability: High</span>
+        </div>
+        <div class="card-body">
+          <div class="count-value" id="f1-people-count">--</div>
+          <p class="count-desc" id="f1-people-desc">Analyzes the entire camera view independently</p>
+        </div>
+        <div class="card-footer">
+          <span id="f1-occlusion-text">Cluster Overlap: 0%</span>
+          <span class="scope-tag">Entire Frame (100%)</span>
+        </div>
+      </div>
+
+      <!-- FEATURE 2: USER-DEFINED CHECKOUT CONGESTION -->
+      <div class="feature-card" id="card-checkout">
+        <div class="card-header">
+          <span class="card-title">CHECKOUT REGION</span>
+          <span id="f2-reliability-badge" class="badge-pill badge-success">Reliability: High</span>
+        </div>
+        <div class="card-body">
+          <div class="region-title-row">
+            <span>User-defined region:</span>
+            <strong id="f2-region-name">"Main Checkout"</strong>
+          </div>
+          <div class="status-indicator-text" id="f2-status-text">Normal</div>
+          <div class="metric-row">
+            <span>Visible people in checkout:</span>
+            <strong id="f2-people-count" class="metric-val">0</strong>
+          </div>
+          <p class="card-explanation" id="f2-explanation">Monitoring user-defined checkout area for persistent congestion.</p>
+        </div>
+        <div class="card-footer">
+          <span id="f2-dwell-text">Congestion Dwell: 0s</span>
+          <button class="btn-text-link" id="btn-edit-checkout-shortcut">Adjust Region &rarr;</button>
+        </div>
+      </div>
+
+      <!-- FEATURE 3: USER-DEFINED SHELF VISUAL-CHANGE MONITOR -->
+      <div class="feature-card" id="card-shelf">
+        <div class="card-header">
+          <span class="card-title">SHELF MONITOR</span>
+          <span id="f3-reliability-badge" class="badge-pill badge-success">Reliability: High</span>
+        </div>
+        <div class="card-body">
+          <div class="region-title-row">
+            <span>User-defined region:</span>
+            <strong id="f3-region-name">"Shelf 1"</strong>
+          </div>
+          <div class="status-indicator-text" id="f3-status-text">No significant visual change detected</div>
+          <div class="metric-row">
+            <span>Visual difference vs reference:</span>
+            <strong id="f3-change-pct" class="metric-val">0%</strong>
+          </div>
+          <p class="card-explanation" id="f3-explanation">Shelf view visible and stable; no person obstruction.</p>
+        </div>
+        <div class="card-footer">
+          <button id="btn-calibrate-shelf" class="btn btn-sm btn-outline">Calibrate Baseline</button>
+          <button class="btn-text-link" id="btn-edit-shelf-shortcut">Adjust Region &rarr;</button>
+        </div>
+      </div>
+
+      <!-- FEATURE 4: VIDEO / ANALYTICS RELIABILITY -->
+      <div class="feature-card">
+        <div class="card-header">
+          <span class="card-title">SYSTEM RELIABILITY</span>
+          <span id="f4-overall-badge" class="badge-pill badge-success">Operable</span>
+        </div>
+        <div class="card-body">
+          <ul class="reliability-checklist">
+            <li>
+              <span class="dot-indicator dot-green" id="dot-video"></span>
+              <span>Video quality:</span>
+              <strong id="rel-video-text">Good</strong>
+            </li>
+            <li>
+              <span class="dot-indicator dot-green" id="dot-people"></span>
+              <span>People detection:</span>
+              <strong id="rel-people-text">Reliable</strong>
+            </li>
+            <li>
+              <span class="dot-indicator dot-green" id="dot-checkout"></span>
+              <span>Checkout analysis:</span>
+              <strong id="rel-checkout-text">Reliable</strong>
+            </li>
+            <li>
+              <span class="dot-indicator dot-green" id="dot-shelf"></span>
+              <span>Shelf analysis:</span>
+              <strong id="rel-shelf-text">Reliable</strong>
+            </li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <span id="rel-clarity-score">Clarity Score: 120.0 (Sharp)</span>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- MODAL: REGION SETUP & DRAWING -->
+  <div id="modal-regions" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>User-Defined Regions Setup</h3>
+        <button class="btn-close modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">
+          This system is layout-agnostic. Define the exact areas on the camera view for Checkout Congestion and Shelf Visual-Change Monitoring:
+        </p>
+
+        <!-- Checkout Setup -->
+        <div class="region-setup-box">
+          <div class="box-header">
+            <div class="color-dot dot-purple"></div>
+            <strong>Checkout Congestion Region</strong>
+          </div>
+          <div class="input-row">
+            <label>Region Name:</label>
+            <input type="text" id="input-checkout-name" value="Main Checkout" class="form-input">
+          </div>
+          <p class="box-desc">Monitors people appearing inside this region and alerts only if persistent congestion occurs.</p>
+          <button id="btn-start-draw-checkout" class="btn btn-sm btn-secondary">Draw on Camera View</button>
+        </div>
+
+        <!-- Shelf Setup -->
+        <div class="region-setup-box">
+          <div class="box-header">
+            <div class="color-dot dot-orange"></div>
+            <strong>Shelf Visual-Change Region</strong>
+          </div>
+          <div class="input-row">
+            <label>Region Name:</label>
+            <input type="text" id="input-shelf-name" value="Shelf 1" class="form-input">
+          </div>
+          <p class="box-desc">Monitors visual differences vs reference baseline. People in front are strictly treated as obstructions and never trigger shelf changes.</p>
+          <div class="btn-group-row">
+            <button id="btn-start-draw-shelf" class="btn btn-sm btn-secondary">Draw on Camera View</button>
+            <button id="btn-modal-calibrate-shelf" class="btn btn-sm btn-outline">Calibrate Shelf Baseline</button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btn-save-region-names" class="btn btn-primary">Save Configuration</button>
+          <button class="btn btn-outline modal-close">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VIDEO SOURCE SELECTOR -->
+  <div id="modal-source" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Video Source Interface</h3>
+        <button class="btn-close modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="source-options">
+          <label class="source-tile active">
+            <input type="radio" name="src_type" value="benchmark" checked>
+            <div>
+              <strong>Built-in Store CCTV Simulation (Recommended)</strong>
+              <p class="tile-desc">Includes moving shoppers, shelf interactions, and counter dwell for instant testing.</p>
+              <button id="btn-src-benchmark" class="btn btn-sm btn-primary mt-2">Switch to Simulation</button>
+            </div>
+          </label>
+
+          <label class="source-tile">
+            <input type="radio" name="src_type" value="file">
+            <div>
+              <strong>Upload Local Video (MP4 / AVI)</strong>
+              <p class="tile-desc">Upload exported footage from your store's DVR/NVR.</p>
+              <div class="upload-row mt-2">
+                <input type="file" id="video-file-input" accept="video/mp4,video/avi,video/mkv">
+                <button id="btn-upload-file" class="btn btn-sm btn-secondary">Upload &amp; Stream</button>
+              </div>
+            </div>
+          </label>
+
+          <label class="source-tile">
+            <input type="radio" name="src_type" value="webcam">
+            <div>
+              <strong>USB / Integrated Webcam</strong>
+              <p class="tile-desc">Connect directly to a USB camera device index (0, 1).</p>
+              <div class="input-inline mt-2">
+                <input type="number" id="webcam-index" value="0" min="0" max="5" style="width: 80px;">
+                <button id="btn-src-webcam" class="btn btn-sm btn-secondary">Connect Webcam</button>
+              </div>
+            </div>
+          </label>
+
+          <label class="source-tile">
+            <input type="radio" name="src_type" value="rtsp">
+            <div>
+              <strong>RTSP / IP Camera Stream</strong>
+              <p class="tile-desc">Connect directly to an accessible CCTV RTSP endpoint.</p>
+              <div class="input-inline mt-2">
+                <input type="text" id="rtsp-url-input" placeholder="rtsp://user:pass@192.168.1.50:554/stream1" class="form-input">
+                <button id="btn-src-rtsp" class="btn btn-sm btn-secondary">Connect Stream</button>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: AUDIT TRAIL -->
+  <div id="modal-audit" class="modal-backdrop hidden">
+    <div class="modal-card modal-card-large">
+      <div class="modal-header">
+        <div>
+          <h3>Evidence Audit Inspector</h3>
+          <p class="modal-sub">Transparent 4-Stage Breakdown: Detection &ne; Real-World Fact</p>
+        </div>
+        <button class="btn-close modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h4 class="audit-section-title">Active Frame Evidence Audit Log:</h4>
+        <div class="audit-console" id="audit-log-content">Loading audit trail...</div>
+
+        <h4 class="audit-section-title">Core Principles Enforced:</h4>
+        <ul class="principles-list">
+          <li><strong>Camera-Wide Independence:</strong> People counting operates across the entire camera view and is never restricted by regions.</li>
+          <li><strong>Shelf Obstruction Separation:</strong> A person in front of a shelf is strictly treated as an obstruction; shelf comparisons are paused until the person leaves.</li>
+          <li><strong>Honest Uncertainty:</strong> Under heavy occlusion or blur, the system outputs ranges (e.g. <code>4–6</code>) or says <code>"Unable to determine reliably"</code> rather than guessing.</li>
+          <li><strong>Zero Speculative Features:</strong> No heat maps, no face recognition, no employee/customer role guessing, no theft claims.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- end #app-dashboard -->
+
+  <script src="app.js"></script>
+</body>
+</html>

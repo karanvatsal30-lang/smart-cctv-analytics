@@ -1,0 +1,7 @@
+opencv-python>=4.8.0
+numpy>=1.23.0
+flask>=3.0.0
+supabase>=2.0.0
+python-dotenv>=1.0.0
+PyJWT>=2.8.0
+cryptography>=41.0.0

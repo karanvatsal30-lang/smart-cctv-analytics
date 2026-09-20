@@ -1,0 +1,60 @@
+{
+  "checkout": {
+    "region_id": "checkout_region",
+    "region_type": "CHECKOUT",
+    "name": "Main Checkout",
+    "polygon": [
+      [
+        400,
+        250
+      ],
+      [
+        600,
+        250
+      ],
+      [
+        600,
+        450
+      ],
+      [
+        400,
+        450
+      ]
+    ],
+    "color_rgb": [
+      186,
+      85,
+      211
+    ],
+    "is_active": true
+  },
+  "shelf": {
+    "region_id": "shelf_region",
+    "region_type": "SHELF",
+    "name": "Shelf 1",
+    "polygon": [
+      [
+        20,
+        80
+      ],
+      [
+        180,
+        80
+      ],
+      [
+        180,
+        280
+      ],
+      [
+        20,
+        280
+      ]
+    ],
+    "color_rgb": [
+      255,
+      165,
+      0
+    ],
+    "is_active": true
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "usr_1789734043_d5bd34": {
+    "id": "usr_1789734043_d5bd34",
+    "email": "test@store.com",
+    "display_name": "Store Owner",
+    "password_hash": "4b0667ea77b5e8bbc9c13ac8f07b84e08a469d45ddf4b247b47456d7ef2c8bb4",
+    "created_at": 1789734043.236706
+  },
+  "usr_1789734169_2d211a": {
+    "id": "usr_1789734169_2d211a",
+    "email": "karanvatsal14@gmail.com",
+    "display_name": "karan vatsal",
+    "password_hash": "7b5cd406e39ba9e9080ac48bb31343976e6a0f0c8b247e6f2641255f7c2026a1",
+    "created_at": 1789734169.5702093
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "usr_123": {
+    "name": "Front Checkout Cam",
+    "source_type": "benchmark",
+    "config_data": {},
+    "updated_at": 1789734043.3208923
+  },
+  "usr_1789734169_2d211a": {
+    "name": "Store CCTV Feed",
+    "source_type": "benchmark",
+    "config_data": {},
+    "updated_at": 1789734169.5847251
+  }
+}
